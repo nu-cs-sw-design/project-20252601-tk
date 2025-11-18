@@ -1,0 +1,155 @@
+@startuml
+package ui {
+    class Main {
+        + main(args: String[])
+    }
+
+    class GameUI {
+        - Game game
+        - ResourceBundle messages
+        + startTurn()
+        + endGame()
+        + checkIfGameOver(): boolean
+        + playMark()
+        + playCatomicBomb()
+        + playReverse()
+        + playShuffle()
+        + playSkip(superSkip: boolean)
+        + playSeeTheFuture()
+        + playAlterTheFuture()
+        + playImplodingKitten(card: Card): boolean
+        + chooseLanguage()
+        + chooseGame()
+        + chooseNumberOfPlayers()
+    }
+}
+
+package domain.game {
+    enum CardType {
+        NOPE
+        DEFUSE
+        ATTACK
+        SHUFFLE
+        SKIP
+        SEE_THE_FUTURE
+        CAT_ONE
+        CAT_TWO
+        CAT_THREE
+        CAT_FOUR
+        EXPLODING_KITTEN
+        STREAKING_KITTEN
+        SWAP_TOP_AND_BOTTOM
+        GARBAGE_COLLECTION
+        CURSE_OF_THE_CAT_BUTT
+        ALTER_THE_FUTURE
+        CATOMIC_BOMB
+        SUPER_SKIP
+        MARK
+        IMPLODING_KITTEN
+        REVERSE
+        FERAL_CAT
+        TARGETED_ATTACK
+        DRAW_FROM_THE_BOTTOM
+    }
+
+    enum GameType {
+        NONE
+        EXPLODING_KITTENS
+        STREAKING_KITTENS
+        IMPLODING_KITTENS
+    }
+
+    class Card {
+        - CardType cardType
+        - boolean facedUp
+        - boolean marked
+        + getCardType(): CardType
+        + checkIfFacedUp(): boolean
+        + setFacedUp()
+        + checkIfMarked(): boolean
+        + setMarked()
+    }
+
+    class Player {
+        - int playerID
+        - List<Card> hand
+        - boolean isCursed
+        - boolean isDead
+        + getCardAt(index: int): Card
+        + removeCardFromHand(index: int)
+        + addCardToHand(card: Card)
+        + getIndexOfCard(cardType: CardType): int
+        + checkNumberOfCardsInHand(cardType: CardType): int
+        + hasCard(cardType: CardType): boolean
+        + addDefuse(card: Card)
+        + getIsCursed(): boolean
+    }
+
+    class Deck {
+        - List<Card> cards
+        - SecureRandom random
+        - GameType gameType
+        - int minSize
+        - int maxSize
+        - Instantiator instantiator
+        + getDeckSize(): int
+        + getCardAtIndex(index: int): Card
+        + initializeDeck()
+        + shuffleDeck()
+        + drawCard(): Card
+        + insertCard(type: CardType, position: int, facedUp: boolean)
+        + reorderDeckCards(newOrder: int[], revealedCards: List<Card>)
+        + insertImplodingKittenAtIndex(index: int, card: Card)
+    }
+
+    class Game {
+        - int currentPlayerTurn
+        - GameType gameType
+        - Deck deck
+        - Player[] players
+        - SecureRandom random
+        - List<Integer> attackedPlayers
+        - int[] turnTracker
+        + getDeck(): Deck
+        + getDeckSize(): int
+        + getPlayerAtIndex(index: int): Player
+        + getPlayerTurn(): int
+        + getNumberOfTurns(): int
+        + setTurnToTargetedIndexIfAttackOccurred()
+        + setPlayerNumberOfTurns()
+        + playMark(playerIndex: int, cardIndex: int)
+        + playCatomicBomb()
+        + playReverse()
+        + playShuffle(times: int)
+        + playSkip(superSkip: boolean): int
+        + stealTypeCard(cardType: CardType, playerIndex: int)
+        + playExplodingKitten(playerIndex: int): boolean
+        + checkNumberOfAlivePlayers(): int
+        + checkIfPlayerDead(playerIndex: int): boolean
+        + checkIfPlayerHasCard(playerIndex: int, cardType: CardType): boolean
+        + getHandSize(playerIndex: int): int
+        + getCardType(playerIndex: int, cardIndex: int): CardType
+        + getGameType(): GameType
+    }
+
+    class Instantiator {
+        + createCard(cardType : CardType) : Card
+        + createRandom() : Random
+        + createCardList() : ArrayList<Card>
+    }
+}
+
+' Relationships
+ui.Main --> ui.GameUI
+ui.Main --> domain.game.Game
+ui.Main --> domain.game.Deck
+ui.Main --> domain.game.Player
+ui.Main ..> domain.game.GameType
+ui.GameUI --> domain.game.Game
+ui.GameUI ..> domain.game.GameType
+domain.game.Game --> domain.game.Player
+domain.game.Game --> domain.game.Deck
+domain.game.Deck --> domain.game.Card
+domain.game.Game --> domain.game.Instantiator
+domain.game.Player --> domain.game.Instantiator
+@enduml
