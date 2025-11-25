@@ -1,0 +1,137 @@
+@startuml
+package ui {
+    class Main {
+        + main(args: String[])
+    }
+
+    class GameUI {
+        - Game game
+        - ResourceBundle messages
+        + chooseGame()
+        + chooseLanguage()
+        + chooseNumberOfPlayers()
+        + startTurn()
+        + playCard(cardIndex: int)
+        + endGame()
+        + checkIfGameOver(): boolean
+    }
+}
+
+package domain.game {
+    enum CardType {
+        NOPE
+        DEFUSE
+        ATTACK
+        SHUFFLE
+        SKIP
+        SEE_THE_FUTURE
+        CAT_ONE
+        CAT_TWO
+        CAT_THREE
+        CAT_FOUR
+        EXPLODING_KITTEN
+        STREAKING_KITTEN
+        SWAP_TOP_AND_BOTTOM
+        GARBAGE_COLLECTION
+        CURSE_OF_THE_CAT_BUTT
+        ALTER_THE_FUTURE
+        CATOMIC_BOMB
+        SUPER_SKIP
+        MARK
+        IMPLODING_KITTEN
+        REVERSE
+        FERAL_CAT
+        TARGETED_ATTACK
+        DRAW_FROM_THE_BOTTOM
+    }
+
+    enum GameType {
+        NONE
+        EXPLODING_KITTENS
+        STREAKING_KITTENS
+        IMPLODING_KITTENS
+    }
+
+    class Card {
+        - CardType cardType
+        - boolean facedUp
+        - boolean marked
+        + getCardType(): CardType
+        + checkIfFacedUp(): boolean
+        + setFacedUp()
+        + checkIfMarked(): boolean
+        + setMarked()
+    }
+
+    class Player {
+        - int playerID
+        - List<Card> hand
+        - boolean isDead
+        + addCardToHand(card: Card)
+        + removeCardAt(index: int)
+        + getCardAt(index: int): Card
+        + hasCard(type: CardType): boolean
+        + getIndexOfCard(type: CardType): int
+        + getHandSize(): int
+    }
+
+    class Deck {
+        - List<Card> cards
+        - SecureRandom random
+        + initializeDeck(gameType: GameType)
+        + shuffleDeck()
+        + drawCard(): Card
+        + insertCard(type: CardType, position: int, facedUp: boolean)
+    }
+
+    class Game {
+        - Deck deck
+        - Player[] players
+        - int currentPlayerIndex
+        - GameType gameType
+        - CardStrategyFactory strategyFactory
+        + startGame()
+        + takeTurn()
+        + applyCardEffect(player: int, card: Card)
+        + drawPhase()
+        + notify(event: GameEvent)
+        + getCurrentPlayer(): Player
+        + getDeck(): Deck
+    }
+}
+
+package domain.strategy {
+    interface CardPlayStrategy {
+        + execute(playerIndex: int, game: Game)
+    }
+
+    class ExplodingKittenStrategy implements CardPlayStrategy
+    class NopeStrategy implements CardPlayStrategy
+    class ShuffleStrategy implements CardPlayStrategy
+    class GenericStrategy implements CardPlayStrategy
+
+    class CardStrategyFactory {
+        + createStrategy(type: CardType): CardPlayStrategy
+    }
+}
+
+' Relationships
+ui.Main --> ui.GameUI
+ui.Main --> domain.game.Game
+ui.Main --> domain.game.Deck
+ui.Main --> domain.game.Player
+
+ui.GameUI --> domain.game.Game
+ui.GameUI ..> domain.game.GameType
+
+domain.game.Game --> domain.game.Player
+domain.game.Game --> domain.game.Deck
+domain.game.Game --> domain.strategy.CardStrategyFactory
+
+domain.strategy.CardStrategyFactory --> domain.strategy.CardPlayStrategy
+domain.strategy.CardPlayStrategy <|.. domain.strategy.ExplodingKittenStrategy
+domain.strategy.CardPlayStrategy <|.. domain.strategy.NopeStrategy
+domain.strategy.CardPlayStrategy <|.. domain.strategy.ShuffleStrategy
+domain.strategy.CardPlayStrategy <|.. domain.strategy.GenericStrategy
+
+@enduml
