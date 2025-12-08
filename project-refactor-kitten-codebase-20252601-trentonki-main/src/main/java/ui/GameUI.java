@@ -1294,315 +1294,339 @@ public class GameUI {
 		return true;
 	}
 
-	public void startTurn() {
-		if (checkIfNumberOfTurnsIsZero()) {
-			game.setTurnToTargetedIndexIfAttackOccurred();
-			game.setPlayerNumberOfTurns();
-		}
-		printPlayerTurn();
-		Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
-		final String playerTurnsMessage = MessageFormat.format
-				(messages.getString("playerTurnsMessage"), game.getNumberOfTurns());
-		final String enterValidIntegerMessage = messages.getString("enterValidInteger");
-		final String notEnoughCardsComboMessage = messages.getString
-				("notEnoughCardsComboMessage");
-		final String notEnoughCardsMessage = messages.getString("notEnoughCardsMessage");
-		final String howManyFeralCatsMessage = messages.getString("howManyFeralCats");
-		final String invalidFeralCatsNumberMessage =
-				messages.getString("invalidFeralCatsNumber");
-		final String invalidCardTypeMessage = messages.getString("invalidCardTypeMessage");
+    public void startTurn() {
+        if (checkIfNumberOfTurnsIsZero()) {
+            game.setTurnToTargetedIndexIfAttackOccurred();
+            game.setPlayerNumberOfTurns();
+        }
+        printPlayerTurn();
+        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
+        final String playerTurnsMessage = MessageFormat.format
+                (messages.getString("playerTurnsMessage"), game.getNumberOfTurns());
+        final String enterValidIntegerMessage = messages.getString("enterValidInteger");
+        final String notEnoughCardsComboMessage = messages.getString
+                ("notEnoughCardsComboMessage");
+        final String notEnoughCardsMessage = messages.getString("notEnoughCardsMessage");
+        final String howManyFeralCatsMessage = messages.getString("howManyFeralCats");
+        final String invalidFeralCatsNumberMessage =
+                messages.getString("invalidFeralCatsNumber");
+        final String invalidCardTypeMessage = messages.getString("invalidCardTypeMessage");
 
-		System.out.println(playerTurnsMessage);
+        System.out.println(playerTurnsMessage);
 
-		while (!checkIfTheyEndTurn()) {
-			printPlayerTurn();
-			int specialCombo = playSpecialCombo();
-			int cardIndex = playedCard();
-			int playerIndex = game.getPlayerTurn();
-			Player player = game.getPlayerAtIndex(playerIndex);
-			CardType cardType = game.getCardType(playerIndex, cardIndex);
+        while (!checkIfTheyEndTurn()) {
+            printPlayerTurn();
+            int specialCombo = playSpecialCombo();
+            int cardIndex = playedCard();
+            int playerIndex = game.getPlayerTurn();
+            Player player = game.getPlayerAtIndex(playerIndex);
 
-			if (checkIfPlayerIsCursed(player) && checkMatchingCardType(cardType,
-					CardType.EXPLODING_KITTEN)) {
-				player.removeCardFromHand(cardIndex);
-				playExplodingKitten(playerIndex);
-				continue;
-			}
+            Card playedCardObj = player.getCardAt(cardIndex);
+            CardType cardType = playedCardObj.getCardType();
 
-			if (checkIfPlayerIsCursed(player) && checkMatchingCardType(cardType,
-					CardType.STREAKING_KITTEN)) {
-				if (hasCardDirect(player, CardType.EXPLODING_KITTEN)) {
-					player.removeCardFromHand(cardIndex);
-					int explodingKittenIdx = game.getIndexOfCardFromHand
-							(playerIndex, CardType.EXPLODING_KITTEN);
-					player.removeCardFromHand(explodingKittenIdx);
-					playExplodingKitten(playerIndex);
-					continue;
-				}
-			}
+            if (checkIfPlayerIsCursed(player) && checkMatchingCardType(cardType,
+                    CardType.EXPLODING_KITTEN)) {
+                player.removeCardFromHand(cardIndex);
+                playExplodingKitten(playerIndex);
+                continue;
+            }
 
-			if (checkIfPlayerIsCursed(player) && specialCombo == 0) {
-				Card card = player.getCardAt(cardIndex);
-				if (checkCardIfInvalid(card)) {
-					promptCursedMessage();
-					player.removeCardFromHand(cardIndex);
-					continue;
-				}
-			}
-			if (specialCombo == 0 && checkCardIfInvalid(player.getCardAt(cardIndex))) {
-				System.out.println(invalidCardTypeMessage);
-				continue;
-			}
+            if (checkIfPlayerIsCursed(player) && checkMatchingCardType(cardType,
+                    CardType.STREAKING_KITTEN)) {
+                if (hasCardDirect(player, CardType.EXPLODING_KITTEN)) {
+                    player.removeCardFromHand(cardIndex);
+                    int explodingKittenIdx = game.getIndexOfCardFromHand
+                            (playerIndex, CardType.EXPLODING_KITTEN);
+                    player.removeCardFromHand(explodingKittenIdx);
+                    playExplodingKitten(playerIndex);
+                    continue;
+                }
+            }
 
-			final int threeCats = 3;
-			final int twoCats = 2;
+            if (checkIfPlayerIsCursed(player) && specialCombo == 0) {
+                Card card = player.getCardAt(cardIndex);
+                if (checkCardIfInvalid(card)) {
+                    promptCursedMessage();
+                    player.removeCardFromHand(cardIndex);
+                    continue;
+                }
+            }
+            if (specialCombo == 0 && checkCardIfInvalid(player.getCardAt(cardIndex))) {
+                System.out.println(invalidCardTypeMessage);
+                continue;
+            }
 
-			if (specialCombo == threeCats) {
-				int numberOfFeralCats =
-						checkNumberOfFeralCats(game.getPlayerTurn());
-				if (checkIfCatCard(cardType) && numberOfFeralCats > 0) {
-					int numberOfCatType =
-							player.checkNumberOfCardsInHand(cardType);
-					if (numberOfFeralCats + numberOfCatType >= threeCats) {
-						System.out.println(howManyFeralCatsMessage);
-						int numberOfFeralCatsToPlay = 0;
-						try {
-							numberOfFeralCatsToPlay = scanner.nextInt();
+            final int threeCats = 3;
+            final int twoCats = 2;
 
-							while (checkFeralCat(numberOfFeralCatsToPlay
-									, numberOfFeralCats,
-									numberOfCatType,
-									threeCats)) {
-								System.out.println
-								(invalidFeralCatsNumberMessage);
-								System.out.println
-								(howManyFeralCatsMessage);
-								numberOfFeralCatsToPlay =
-									scanner.nextInt();
-							}
-						} catch (Exception e) {
-							System.out.println
-									(enterValidIntegerMessage);
-							scanner.next();
-						}
-						for (int i = 0; i < numberOfFeralCatsToPlay; i++) {
-							player.removeCardFromHand
-								(player.getIndexOfCard
-									(CardType.FERAL_CAT));
-						}
-						for (int i = 0;
-							i < threeCats - numberOfFeralCatsToPlay;
-							i++) {
-							player.removeCardFromHand
-								(player.getIndexOfCard(cardType));
-						}
-					} else {
-						if (checkIfPlayerIsCursed(player)) {
-							promptCursedMessage();
-							player.removeCardFromHand(cardIndex);
-							continue;
-						}
-						System.out.println(notEnoughCardsComboMessage);
-						continue;
-					}
-				} else {
-					if (checkNumberOfCards(player, cardType, threeCats)) {
-						for (int i = 0; i < threeCats; i++) {
-							player.removeCardFromHand
-								(player.getIndexOfCard(cardType));
-						}
-					} else {
-						if (checkIfPlayerIsCursed(player)) {
-							promptCursedMessage();
-							player.removeCardFromHand(cardIndex);
-							continue;
-						}
-						System.out.println(notEnoughCardsComboMessage);
-						continue;
-					}
-				}
+            if (specialCombo == threeCats) {
+                int numberOfFeralCats =
+                        checkNumberOfFeralCats(game.getPlayerTurn());
+                if (checkIfCatCard(cardType) && numberOfFeralCats > 0) {
+                    int numberOfCatType =
+                            player.checkNumberOfCardsInHand(cardType);
+                    if (numberOfFeralCats + numberOfCatType >= threeCats) {
+                        System.out.println(howManyFeralCatsMessage);
+                        int numberOfFeralCatsToPlay = 0;
+                        try {
+                            numberOfFeralCatsToPlay = scanner.nextInt();
 
-			} else if (checkIfCatCard(cardType) || specialCombo == twoCats) {
-				boolean catCard = checkIfCatCard(cardType);
-				int numberOfFeralCats = checkNumberOfFeralCats
-					(game.getPlayerTurn());
-				if (catCard && numberOfFeralCats > 0) {
-					int numberOfCatType =
-						player.checkNumberOfCardsInHand(cardType);
-					int numberOfFeralCatsToPlay = 0;
-					if (numberOfFeralCats + numberOfCatType >= twoCats) {
-						System.out.println(howManyFeralCatsMessage);
-						try {
-							numberOfFeralCatsToPlay = scanner.nextInt();
-							while (checkFeralCat(numberOfFeralCatsToPlay
-							, numberOfFeralCats,
-									numberOfCatType, twoCats)) {
+                            while (checkFeralCat(numberOfFeralCatsToPlay
+                                    , numberOfFeralCats,
+                                    numberOfCatType,
+                                    threeCats)) {
+                                System.out.println
+                                        (invalidFeralCatsNumberMessage);
+                                System.out.println
+                                        (howManyFeralCatsMessage);
+                                numberOfFeralCatsToPlay =
+                                        scanner.nextInt();
+                            }
+                        } catch (Exception e) {
+                            System.out.println
+                                    (enterValidIntegerMessage);
+                            scanner.next();
+                        }
+                        for (int i = 0; i < numberOfFeralCatsToPlay; i++) {
+                            player.removeCardFromHand
+                                    (player.getIndexOfCard
+                                            (CardType.FERAL_CAT));
+                        }
+                        for (int i = 0;
+                             i < threeCats - numberOfFeralCatsToPlay;
+                             i++) {
+                            player.removeCardFromHand
+                                    (player.getIndexOfCard(cardType));
+                        }
+                    } else {
+                        if (checkIfPlayerIsCursed(player)) {
+                            promptCursedMessage();
+                            player.removeCardFromHand(cardIndex);
+                            continue;
+                        }
+                        System.out.println(notEnoughCardsComboMessage);
+                        continue;
+                    }
+                } else {
+                    if (checkNumberOfCards(player, cardType, threeCats)) {
+                        for (int i = 0; i < threeCats; i++) {
+                            player.removeCardFromHand
+                                    (player.getIndexOfCard(cardType));
+                        }
+                    } else {
+                        if (checkIfPlayerIsCursed(player)) {
+                            promptCursedMessage();
+                            player.removeCardFromHand(cardIndex);
+                            continue;
+                        }
+                        System.out.println(notEnoughCardsComboMessage);
+                        continue;
+                    }
+                }
 
-								System.out.println
-								(invalidFeralCatsNumberMessage);
-								System.out.println
-								(howManyFeralCatsMessage);
-								numberOfFeralCatsToPlay =
-									scanner.nextInt();
-							}
-						} catch (Exception e) {
-							System.out.println
-								(enterValidIntegerMessage);
-							scanner.next();
-						}
-						for (int i = 0; i < numberOfFeralCatsToPlay; i++) {
-							player.removeCardFromHand
-								(player.getIndexOfCard
-									(CardType.FERAL_CAT));
-						}
-						for (int i = 0; i < twoCats -
-								numberOfFeralCatsToPlay; i++) {
-							player.removeCardFromHand
-								(player.getIndexOfCard(cardType));
-						}
-					} else {
-						if (player.getIsCursed()) {
-							promptCursedMessage();
-							player.removeCardFromHand(cardIndex);
-							continue;
-						}
-						System.out.println
-							(notEnoughCardsComboMessage);
-						continue;
-					}
-				} else {
+            } else if (checkIfCatCard(cardType) || specialCombo == twoCats) {
+                boolean catCard = checkIfCatCard(cardType);
+                int numberOfFeralCats = checkNumberOfFeralCats
+                        (game.getPlayerTurn());
+                if (catCard && numberOfFeralCats > 0) {
+                    int numberOfCatType =
+                            player.checkNumberOfCardsInHand(cardType);
+                    int numberOfFeralCatsToPlay = 0;
+                    if (numberOfFeralCats + numberOfCatType >= twoCats) {
+                        System.out.println(howManyFeralCatsMessage);
+                        try {
+                            numberOfFeralCatsToPlay = scanner.nextInt();
+                            while (checkFeralCat(numberOfFeralCatsToPlay
+                                    , numberOfFeralCats,
+                                    numberOfCatType, twoCats)) {
 
-					if (checkNumberOfCards(player, cardType, twoCats)) {
-						player.removeCardFromHand(
-								player.getIndexOfCard(cardType));
-						player.removeCardFromHand(
-								player.getIndexOfCard(cardType));
-					} else {
-						if (checkIfPlayerIsCursed(player)) {
-							promptCursedMessage();
-							player.removeCardFromHand(cardIndex);
-							continue;
-						}
-						System.out.println(notEnoughCardsMessage);
-						continue;
-					}
-				}
-			} else {
-				player.removeCardFromHand(cardIndex);
-			}
+                                System.out.println
+                                        (invalidFeralCatsNumberMessage);
+                                System.out.println
+                                        (howManyFeralCatsMessage);
+                                numberOfFeralCatsToPlay =
+                                        scanner.nextInt();
+                            }
+                        } catch (Exception e) {
+                            System.out.println
+                                    (enterValidIntegerMessage);
+                            scanner.next();
+                        }
+                        for (int i = 0; i < numberOfFeralCatsToPlay; i++) {
+                            player.removeCardFromHand
+                                    (player.getIndexOfCard
+                                            (CardType.FERAL_CAT));
+                        }
+                        for (int i = 0; i < twoCats -
+                                numberOfFeralCatsToPlay; i++) {
+                            player.removeCardFromHand
+                                    (player.getIndexOfCard(cardType));
+                        }
+                    } else {
+                        if (player.getIsCursed()) {
+                            promptCursedMessage();
+                            player.removeCardFromHand(cardIndex);
+                            continue;
+                        }
+                        System.out.println
+                                (notEnoughCardsComboMessage);
+                        continue;
+                    }
+                } else {
 
-			if (checkIfDifferentCardType(cardType, CardType.EXPLODING_KITTEN)
-					&& checkIfDifferentCardType(cardType, CardType.DEFUSE)) {
-				if (checkAllPlayersNope()) {
-					continue;
-				}
-			} else if (specialCombo == twoCats || specialCombo == threeCats) {
-				if (checkAllPlayersNope()) {
-					continue;
-				}
-			}
+                    if (checkNumberOfCards(player, cardType, twoCats)) {
+                        player.removeCardFromHand(
+                                player.getIndexOfCard(cardType));
+                        player.removeCardFromHand(
+                                player.getIndexOfCard(cardType));
+                    } else {
+                        if (checkIfPlayerIsCursed(player)) {
+                            promptCursedMessage();
+                            player.removeCardFromHand(cardIndex);
+                            continue;
+                        }
+                        System.out.println(notEnoughCardsMessage);
+                        continue;
+                    }
+                }
+            } else {
+                player.removeCardFromHand(cardIndex);
+            }
+
+            // NOPE checks
+            if (checkIfDifferentCardType(cardType, CardType.EXPLODING_KITTEN)
+                    && checkIfDifferentCardType(cardType, CardType.DEFUSE)) {
+                if (checkAllPlayersNope()) {
+                    continue;
+                }
+            } else if (specialCombo == twoCats || specialCombo == threeCats) {
+                if (checkAllPlayersNope()) {
+                    continue;
+                }
+            }
+
+            if (specialCombo ==  twoCats) {
+                playSpecialComboTwoCards(cardType);
+                continue;
+            } else if (specialCombo == threeCats) {
+                playSpecialComboThreeCards(cardType);
+                continue;
+            }
+
+            // tries to delegate to strategy pattern if possible
+            domain.strategy.CardPlayStrategy strategy =
+                    domain.strategy.CardStrategyFactory.getStrategy(cardType);
+
+            if (strategy != null) {
+                // Prepare params for each card if the strategy expects them.
+                // Handles game flow according to the corresponding card/strategy applied
+                if (cardType == CardType.SHUFFLE) {
+                    strategy.play(game, playerIndex);
+                } else if (cardType == CardType.SKIP) {
+                    strategy.play(game, playerIndex, Boolean.FALSE);
+                    return;
+                } else if (cardType == CardType.SUPER_SKIP) {
+                    strategy.play(game, playerIndex, Boolean.TRUE);
+                    return;
+                } else if (cardType == CardType.NOPE) {
+                    // NOPE is handled by UI (checkAllPlayersNope), but if a player intentionally plays a NOPE,
+                    // the strategy marker is still called for consistency
+                    strategy.play(game, playerIndex);
+                } else if (cardType == CardType.EXPLODING_KITTEN) {
+                    strategy.play(game, playerIndex);
+                } else {
+                    // fallback: call without params
+                    strategy.play(game, playerIndex);
+                }
+
+                continue;
+            }
+
+            // legacy switch statement for cards not included in the refactor
+            switch (cardType) {
+                case ATTACK:
+                    playAttack(false);
+                    return;
+                case TARGETED_ATTACK:
+                    playAttack(true);
+                    return;
+                case SWAP_TOP_AND_BOTTOM:
+                    final String topCardMessage = MessageFormat.format(
+                            messages.getString("swapTopMessage"),
+                            getLocalizedCardType(
+                                    game.getDeck().getCardAtIndex
+                                            (game.getDeckSize() - 1).getCardType())
+                    );
+                    final String bottomCardMessage = MessageFormat.format(
+                            messages.getString("swapBottomMessage"),
+                            getLocalizedCardType(
+                                    game.getDeck().getCardAtIndex(0)
+                                            .getCardType())
+                    );
+                    System.out.println(topCardMessage);
+                    System.out.println(bottomCardMessage);
+
+                    swapTopAndBottom();
+
+                    final String newTopCardMessage = MessageFormat.format(
+                            messages.getString("newSwapTopMessage"),
+                            getLocalizedCardType(
+                                    game.getDeck().getCardAtIndex
+                                            (game.getDeckSize() - 1).getCardType())
+                    );
+                    final String newBottomCardMessage = MessageFormat.format(
+                            messages.getString("newSwapBottomMessage"),
+                            getLocalizedCardType(
+                                    game.getDeck().getCardAtIndex(0)
+                                            .getCardType())
+                    );
+                    System.out.println(newTopCardMessage);
+                    System.out.println(newBottomCardMessage);
+                    break;
+                case CAT_ONE:
+                    playSpecialComboTwoCards(CardType.CAT_ONE);
+                    break;
+                case CAT_TWO:
+                    playSpecialComboTwoCards(CardType.CAT_TWO);
+                    break;
+                case CAT_THREE:
+                    playSpecialComboTwoCards(CardType.CAT_THREE);
+                    break;
+                case CAT_FOUR:
+                    playSpecialComboTwoCards(CardType.CAT_FOUR);
+                    break;
+                case DRAW_FROM_THE_BOTTOM:
+                    drawFromTheBottom();
+                    break;
+                case CATOMIC_BOMB:
+                    playCatomicBomb();
+                    return;
+                case REVERSE:
+                    playReverse();
+                    return;
+                case SEE_THE_FUTURE:
+                    playSeeTheFuture();
+                    break;
+                case GARBAGE_COLLECTION:
+                    playGarbageCollection();
+                    break;
+                case MARK:
+                    playMark();
+                    break;
+                case ALTER_THE_FUTURE:
+                    playAlterTheFuture();
+                    break;
+                case CURSE_OF_THE_CAT_BUTT:
+                    playCurseOfTheCatButt();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
 
-			if (specialCombo ==  twoCats) {
-				playSpecialComboTwoCards(cardType);
-				continue;
-			} else if (specialCombo == threeCats) {
-				playSpecialComboThreeCards(cardType);
-				continue;
-			}
-
-			switch (cardType) {
-				case ATTACK:
-					playAttack(false);
-					return;
-				case TARGETED_ATTACK:
-					playAttack(true);
-					return;
-				case SWAP_TOP_AND_BOTTOM:
-					final String topCardMessage = MessageFormat.format(
-						messages.getString("swapTopMessage"),
-							getLocalizedCardType(
-							game.getDeck().getCardAtIndex
-							(game.getDeckSize() - 1).getCardType())
-					);
-					final String bottomCardMessage = MessageFormat.format(
-						messages.getString("swapBottomMessage"),
-							getLocalizedCardType(
-							game.getDeck().getCardAtIndex(0)
-									.getCardType())
-					);
-					System.out.println(topCardMessage);
-					System.out.println(bottomCardMessage);
-
-					swapTopAndBottom();
-
-					final String newTopCardMessage = MessageFormat.format(
-						messages.getString("newSwapTopMessage"),
-							getLocalizedCardType(
-							game.getDeck().getCardAtIndex
-							(game.getDeckSize() - 1).getCardType())
-					);
-					final String newBottomCardMessage = MessageFormat.format(
-							messages.getString("newSwapBottomMessage"),
-							getLocalizedCardType(
-							game.getDeck().getCardAtIndex(0)
-									.getCardType())
-					);
-					System.out.println(newTopCardMessage);
-					System.out.println(newBottomCardMessage);
-					break;
-				case SHUFFLE:
-					playShuffle();
-					break;
-				case SKIP:
-					playSkip(false);
-					return;
-				case SUPER_SKIP:
-					playSkip(true);
-					return;
-				case CAT_ONE:
-					playSpecialComboTwoCards(CardType.CAT_ONE);
-					break;
-				case CAT_TWO:
-					playSpecialComboTwoCards(CardType.CAT_TWO);
-					break;
-				case CAT_THREE:
-					playSpecialComboTwoCards(CardType.CAT_THREE);
-					break;
-				case CAT_FOUR:
-					playSpecialComboTwoCards(CardType.CAT_FOUR);
-					break;
-				case DRAW_FROM_THE_BOTTOM:
-					drawFromTheBottom();
-					break;
-				case CATOMIC_BOMB:
-					playCatomicBomb();
-					return;
-				case REVERSE:
-					playReverse();
-					return;
-				case SEE_THE_FUTURE:
-					playSeeTheFuture();
-					break;
-				case GARBAGE_COLLECTION:
-					playGarbageCollection();
-					break;
-				case MARK:
-					playMark();
-					break;
-				case ALTER_THE_FUTURE:
-					playAlterTheFuture();
-					break;
-				case CURSE_OF_THE_CAT_BUTT:
-					playCurseOfTheCatButt();
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	public void endGame() {
+    public void endGame() {
 		final String gameOverMessage = messages.getString("gameOverMessage");
 		System.out.println(gameOverMessage);
 	}
