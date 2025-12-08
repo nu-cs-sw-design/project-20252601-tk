@@ -122,6 +122,12 @@ package domain.game {
     + getGameType(): GameType
     + canAnyPlayerNope(currentPlayerIndex: int): boolean
   }
+
+  class Instantiator {
+          + createCard(cardType : CardType) : Card
+          + createRandom() : Random
+          + createCardList() : ArrayList<Card>
+      }
 }
 
 package domain.strategy {
@@ -145,6 +151,7 @@ domain.game.Game --> domain.game.Player
 domain.game.Game --> domain.game.Deck
 domain.game.Deck --> domain.game.Card
 domain.game.Game ..> domain.strategy.CardStrategyFactory
+domain.game.Player --> domain.game.Instantiator
 domain.strategy.CardPlayStrategy ..> domain.game.Game
 domain.strategy.CardPlayStrategy <|.. domain.strategy.ExplodingKittenStrategy
 domain.strategy.CardPlayStrategy <|.. domain.strategy.NopeStrategy

@@ -150,6 +150,5 @@ ui.GameUI ..> domain.game.GameType
 domain.game.Game --> domain.game.Player
 domain.game.Game --> domain.game.Deck
 domain.game.Deck --> domain.game.Card
-domain.game.Game --> domain.game.Instantiator
 domain.game.Player --> domain.game.Instantiator
 @enduml
